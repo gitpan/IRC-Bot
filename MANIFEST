@@ -1,0 +1,9 @@
+Bot.pm
+Bot/Auth.pm
+Bot/Help.pm
+Bot/Log.pm
+Bot/Seen.pm
+Changes
+MANIFEST
+Makefile.PL
+test.pl
