@@ -2,6 +2,7 @@ package IRC::Bot;
 
 use strict;
 use warnings;
+
 #use diagnostics;  # For development
 use vars qw($VERSION @ISA @EXPORT $log $seen $auth $help);
 use Carp;
@@ -18,7 +19,7 @@ require Exporter;
 
 @ISA     = qw(Exporter AutoLoader);
 @EXPORT  = qw();
-$VERSION = '0.03';
+$VERSION = '0.04';
 
 # Set us up the bomb
 sub new {
@@ -34,12 +35,12 @@ sub run {
 
     my $self = shift;
 
-    $log  = IRC::Bot::Log->new( 'Path' => $self->{'LogPath'} );
+    $log = IRC::Bot::Log->new( 'Path' => $self->{'LogPath'} );
     $seen = IRC::Bot::Seen->new();
     $auth = IRC::Bot::Auth->new();
     $help = IRC::Bot::Help->new();
 
-    POE::Component::IRC->new( NICK )
+    POE::Component::IRC->new(NICK)
       || croak "Cannot create new P::C::I object!\n";
 
     POE::Session->create(
@@ -53,11 +54,15 @@ sub run {
                 irc_quit         => "on_quit",
                 irc_join         => "on_join",
                 irc_part         => "on_part",
+                irc_mode         => "on_mode",
+                irc_kick         => "on_kick",
+                irc_notice       => "on_notice",
                 irc_ctcp_ping    => "on_ping",
                 irc_ctcp_version => "on_ver",
                 irc_ctcp_finger  => "on_finger",
                 irc_ctcp_page    => "on_page",
                 irc_ctcp_time    => "on_time",
+                irc_ctcp_action  => "on_action",
                 irc_nick         => "on_nick",
                 keepalive        => "keepalive",
                 irc_433          => "on_nick_taken",
@@ -164,12 +169,63 @@ sub on_time {
 
 }
 
+# Log actions
+sub on_action {
+
+    my ( $self, $kernel, $who, $where, $msg ) =
+      @_[ OBJECT, KERNEL, ARG0, ARG1, ARG2 ];
+
+    my $nick = ( split /!/, $who )[0];
+    my $channel = $where->[0];
+    my $time = sprintf( "%02d:%02d", ( localtime( time() ) )[ 2, 1 ] );
+    $log->chan_log("[$channel $time] Action: *$nick $msg");
+
+}
+
+# Handle mode changes
+sub on_mode {
+
+    my ( $self, $kernel, $who, $where, $mode, $nicks ) =
+      @_[ OBJECT, KERNEL, ARG0, ARG1, ARG2, ARG3 ];
+
+    my $nick = ( split /!/, $who )[0];
+    my $time = sprintf( "%02d:%02d", ( localtime( time() ) )[ 2, 1 ] );
+    $self->{'Nick'} eq $where
+      ? $log->bot_log("[$where $time] MODE: $mode")
+      : $log->chan_log("[$where $time] MODE: $mode $nicks by: $nick");
+
+}
+
+# Handle notices
+sub on_notice {
+
+    my ( $self, $kernel, $who, $msg ) = @_[ OBJECT, KERNEL, ARG0, ARG2 ];
+
+    my $nick = ( split /!/, $who )[0];
+    my $time = sprintf( "%02d:%02d", ( localtime( time() ) )[ 2, 1 ] );
+    $log->bot_log("[$self->{'Nick'} $time] NOTICE: $nick: $msg");
+
+}
+
+# Handle kicks
+sub on_kick {
+
+    my ( $self, $kernel, $who, $chan, $kickee, $msg ) =
+      @_[ OBJECT, KERNEL, ARG0, ARG1, ARG2, ARG3 ];
+
+    my $nick = ( split /!/, $who )[0];
+    my $time = sprintf( "%02d:%02d", ( localtime( time() ) )[ 2, 1 ] );
+    $log->chan_log("[$chan $time] KICK: $nick: $kickee ($msg)");
+
+}
+
 # Handle someone quitting.
 sub on_quit {
 
     my ( $self, $kernel, $who, $msg ) = @_[ OBJECT, KERNEL, ARG0, ARG1 ];
     my $nick = ( split /!/, $who )[0];
-    $log->serv_log("$nick Quit: $msg");
+    my $time = sprintf( "%02d:%02d", ( localtime( time() ) )[ 2, 1 ] );
+    $log->serv_log("[$self->{'Nick'} $time] QUIT: $nick: $msg");
     $seen->log_seen( $nick, "Quit: $msg" );
 
 }
@@ -179,7 +235,8 @@ sub on_join {
 
     my ( $self, $kernel, $who, $where ) = @_[ OBJECT, KERNEL, ARG0, ARG1 ];
     my $nick = ( split /!/, $who )[0];
-    $log->chan_log("$nick Joining $where");
+    my $time = sprintf( "%02d:%02d", ( localtime( time() ) )[ 2, 1 ] );
+    $log->chan_log("[$where $time] JOIN: $nick");
     $seen->log_seen( $nick, "Joining $where" );
 
 }
@@ -189,7 +246,8 @@ sub on_part {
 
     my ( $self, $kernel, $who, $where ) = @_[ OBJECT, KERNEL, ARG0, ARG1 ];
     my $nick = ( split /!/, $who )[0];
-    $log->chan_log("$nick Parting $where");
+    my $time = sprintf( "%02d:%02d", ( localtime( time() ) )[ 2, 1 ] );
+    $log->chan_log("[$where $time] PART: $nick");
     $seen->log_seen( $nick, "Parting $where" );
 
 }
@@ -230,10 +288,10 @@ sub on_public {
 
     my ( $self, $kernel, $who, $where, $msg ) =
       @_[ OBJECT, KERNEL, ARG0 .. $#_ ];
-    my $nick    = ( split /!/, $who )[0];
+    my $nick = ( split /!/, $who )[0];
     my $channel = $where->[0];
     my $pubmsg  = $msg;
-    my $time = sprintf("%02d:%02d", ( localtime( time() ) )[ 2, 1 ] );
+    my $time    = sprintf( "%02d:%02d", ( localtime( time() ) )[ 2, 1 ] );
     $log->chan_log("[$channel $time] <$nick> $msg");
 
     if ( $msg =~ m/^!help$/i ) {
@@ -259,7 +317,7 @@ sub on_public {
     }
     elsif ( $msg =~ m/^!seen/i ) {
 
-        my @arg  = split ( / /, $msg );
+        my @arg = split ( / /, $msg );
         my $name = $arg[1];
 
         if ($name) {
@@ -283,7 +341,8 @@ sub on_public {
         }
         else {
             my $seen = $help->pub_help('seen');
-            $self->botspeak( $kernel, $channel, "Hey $nick, it's like this: $seen" );
+            $self->botspeak( $kernel, $channel,
+                "Hey $nick, it's like this: $seen" );
         }
     }
 }
@@ -294,7 +353,8 @@ sub on_msg {
     my ( $self, $kernel, $who, $nicks, $msg ) =
       @_[ OBJECT, KERNEL, ARG0, ARG1, ARG2 ];
     my $nick = ( split /!/, $who )[0];
-
+    my $time = sprintf( "%02d:%02d", ( localtime( time() ) )[ 2, 1 ] );
+    $log->bot_log("[$self->{'Nick'} $time] <$nick> $msg");
     $self->botspeak( $kernel, $nick,
         "Please use DCC CHAT to communicate with me :)" )
 
@@ -345,26 +405,27 @@ sub on_dcc_chat {
     my ( $self, $kernel, $id, $who, $msg ) =
       @_[ OBJECT, KERNEL, ARG0, ARG1, ARG3 ];
 
-    my $nick  = ( split /!/, $who )[0];
+    my $nick = ( split /!/, $who )[0];
     my $check = $auth->is_auth($nick);
 
     if ( $msg =~ m/^.login/i ) {
 
-        my @arg  = split ( / /, $msg );
+        my @arg = split ( / /, $msg );
         my $user = $arg[1];
         my $pass = $arg[2];
+        my $time = sprintf( "%02d:%02d", ( localtime( time() ) )[ 2, 1 ] );
 
         if ( $user eq $self->{'Admin'} && $pass eq $self->{'Apass'} ) {
             $kernel->post( NICK, 'dcc_chat', $id, "Welcome, $nick!" );
             $kernel->post( NICK, 'dcc_chat', $id,
                 "All commands are prefixed with a period(.)" );
             $kernel->post( NICK, 'dcc_chat', $id, "See \cB.help\cB" );
-            $log->bot_log("$nick logged in with $user && $pass");
+            $log->bot_log("[$self->{'Nick'} $time] $nick logged in with $user");
             $auth->auth_set($nick);
         }
         else {
             $kernel->post( NICK, 'dcc_chat', $id, "Incorrect Login Info!" );
-            $log->bot_log("$nick tried to login with $user && $pass");
+            $log->bot_log("$nick tried to login with $user");
             $kernel->post( NICK, 'dcc_close', $id );
         }
     }
@@ -395,7 +456,7 @@ sub on_dcc_chat {
         }
         elsif ( $msg =~ m/^.join/i ) {
 
-            my @arg  = split ( / /, $msg );
+            my @arg = split ( / /, $msg );
             my $chan = $arg[1];
 
             if ($chan) {
@@ -408,7 +469,7 @@ sub on_dcc_chat {
         }
         elsif ( $msg =~ m/^.part/i ) {
 
-            my @arg  = split ( / /, $msg );
+            my @arg = split ( / /, $msg );
             my $chan = $arg[1];
 
             if ($chan) {
@@ -421,7 +482,7 @@ sub on_dcc_chat {
         }
         elsif ( $msg =~ m/^.help/i ) {
 
-            my @arg     = split ( / /, $msg );
+            my @arg = split ( / /, $msg );
             my $command = $arg[1];
 
             if ($command) {
@@ -459,9 +520,9 @@ sub on_dcc_chat {
                 $kernel->call( NICK, 'quit', "IRC::BOT" );
             }
         }
-        elsif ( $msg =~ m/^.clear\s+\w$/i || $msg =~ m/^.clear/i ) {
+        elsif ( $msg =~ m/^.clear\s+\w$/i || $msg =~ m/^.clear$/i ) {
 
-            my @arg   = split ( / /, $msg );
+            my @arg = split ( / /, $msg );
             my $file  = $arg[1];
             my $clear = $log->clear_log($file);
 
@@ -475,7 +536,7 @@ sub on_dcc_chat {
         }
         elsif ( $msg =~ m/^.kick/i ) {
 
-            my @arg     = split ( / /, $msg );
+            my @arg = split ( / /, $msg );
             my $channel = $arg[1];
             my $user    = $arg[2];
             my $mesg    = $arg[3];
@@ -489,7 +550,7 @@ sub on_dcc_chat {
         }
         elsif ( $msg =~ m/^.op/i ) {
 
-            my @arg     = split ( / /, $msg );
+            my @arg = split ( / /, $msg );
             my $channel = $arg[1];
             my $user    = $arg[2];
             if ( $channel || $user ) {
@@ -502,7 +563,7 @@ sub on_dcc_chat {
         }
         elsif ( $msg =~ m/^.deop/i ) {
 
-            my @arg     = split ( / /, $msg );
+            my @arg = split ( / /, $msg );
             my $channel = $arg[1];
             my $user    = $arg[2];
             if ( $channel || $user ) {
@@ -515,7 +576,7 @@ sub on_dcc_chat {
         }
         elsif ( $msg =~ m/^.ban/i ) {
 
-            my @arg     = split ( / /, $msg );
+            my @arg = split ( / /, $msg );
             my $channel = $arg[1];
             my $host    = $arg[2];
             if ( $channel || $host ) {
@@ -529,7 +590,7 @@ sub on_dcc_chat {
         }
         elsif ( $msg =~ m/^.unban/i ) {
 
-            my @arg     = split ( / /, $msg );
+            my @arg = split ( / /, $msg );
             my $channel = $arg[1];
             my $host    = $arg[2];
             if ( $channel || $host ) {
@@ -542,7 +603,7 @@ sub on_dcc_chat {
         }
         elsif ( $msg =~ m/^.hop/i ) {
 
-            my @arg     = split ( / /, $msg );
+            my @arg = split ( / /, $msg );
             my $channel = $arg[1];
             my $user    = $arg[2];
 
@@ -556,7 +617,7 @@ sub on_dcc_chat {
         }
         elsif ( $msg =~ m/^.dehop/i ) {
 
-            my @arg     = split ( / /, $msg );
+            my @arg = split ( / /, $msg );
             my $channel = $arg[1];
             my $user    = $arg[2];
 
@@ -570,7 +631,7 @@ sub on_dcc_chat {
         }
         elsif ( $msg =~ m/^.voice/i ) {
 
-            my @arg     = split ( / /, $msg );
+            my @arg = split ( / /, $msg );
             my $channel = $arg[1];
             my $user    = $arg[2];
 
@@ -585,7 +646,7 @@ sub on_dcc_chat {
         }
         elsif ( $msg =~ m/^.devoice/i ) {
 
-            my @arg     = split ( / /, $msg );
+            my @arg = split ( / /, $msg );
             my $channel = $arg[1];
             my $user    = $arg[2];
 
@@ -600,7 +661,7 @@ sub on_dcc_chat {
         }
         elsif ( $msg =~ m/^.away/i ) {
 
-            my @arg  = split ( / /, $msg );
+            my @arg = split ( / /, $msg );
             my $amsg = $arg[1];
 
             if ($amsg) {
@@ -630,12 +691,12 @@ sub on_dcc_chat {
 
         }
         elsif ( $msg =~ m/^.topic/i ) {
-            my @arg  = split ( / /, $msg );
+            my @arg = split ( / /, $msg );
             my $chan = $arg[1];
             $msg =~ s/\.topic\s+//;
             $msg =~ s/$chan//;
             $msg =~ s/\n+//;
-            if ( $msg ) {
+            if ($msg) {
                 $kernel->post( NICK, 'topic', $chan, $msg );
             }
             else {
@@ -681,11 +742,11 @@ sub on_dcc_done {
 # Parse and send info to Seen.pm
 sub on_names {
 
-    my ($self, $kernel, $sender, $server, $who) = 
-        @_[OBJECT, KERNEL, SENDER, ARG0..ARG1];
+    my ( $self, $kernel, $sender, $server, $who ) =
+      @_[ OBJECT, KERNEL, SENDER, ARG0 .. ARG1 ];
 
     $who =~ /([^"]*)\s+:([^"]*)\s+/;
-    my $chan = $1;
+    my $chan  = $1;
     my $names = $2;
     $seen->load_current( $names, $chan );
 
@@ -698,23 +759,24 @@ sub on_names {
 sub daemon {
 
     my $self = shift;
-    
+
     my @fh = ( \*STDIN, \*STDOUT );
 
     my $path;
-    $self->{'LogPath'} eq 'null' ? $path = $ENV{'HOME'} :  $path = $self->{'LogPath'};
+    $self->{'LogPath'} eq 'null' ? $path = $ENV{'HOME'} : $path =
+      $self->{'LogPath'};
     open \*STDERR, ">$path/error.log";
-    select((select(\*STDERR), $| = 1)[0]);
-    
+    select( ( select( \*STDERR ), $| = 1 )[0] );
+
     my $ppid = $$;
 
     my $pid = fork && exit 0;
 
-    ! defined $pid && croak "No Fork: ", $!;
+    !defined $pid && croak "No Fork: ", $!;
 
-    while (kill 0, $ppid) {
+    while ( kill 0, $ppid ) {
         select undef, undef, undef, .001;
-    };
+    }
 
     my $session_id = POSIX::setsid();
     chdir '/' || croak "Could not cd to /", $!;
@@ -725,7 +787,7 @@ sub daemon {
 
 # Disconnected, clean up a bit
 sub on_disco {
- 
+
     my $self = shift;
     $auth->de_auth();
     exit(0);
@@ -852,3 +914,4 @@ Benjamin Smith (DeFyance) defyance@just-another.net
 POE::Component::IRC Cache::FileCache
 
 =cut
+

@@ -5,7 +5,7 @@ use IRC::Bot;
 my $bot = IRC::Bot->new(      
                          Debug    => 0,
                          Nick     => 'TestBot',
-     	     	         Server   => 'irc.slashnet.org',
+     	     	         Server   => 'moo.slashnet.org',
 			 Pass     => '',
                          Port     => '6667',
                          Username => 'TestBot',
