@@ -9,7 +9,7 @@ require Exporter;
 
 @ISA     = qw(Exporter AutoLoader);
 @EXPORT  = qw();
-$VERSION = '0.01';
+$VERSION = '0.02';
 
 my %help = (
 
@@ -86,7 +86,7 @@ __END__
 
 =head1 NAME
 
-Help.pm -  A module to dispatch help for IRC::Bot
+Help.pm -  A module to dispatch help for IRC::Bot.
 
 =head1 SYNOPSIS
 
@@ -102,7 +102,7 @@ Help.pm -  A module to dispatch help for IRC::Bot
     my $nick = ( split /!/, $who )[0];
 
     # Do Stuff...
-    if ( $msg =~ m/^\.help/i ) {
+    if ( $msg =~ m/^.help/i ) {
     
         my $topic = $help->ask_help('all');
         $kernel->post( NICK, 'dcc_chat', $id, $topic );
@@ -119,7 +119,7 @@ Basically holds a list of help topics and dispatches them on demand.
 
 =over 2
 
-=item 1
+=item ask_help()
 
 B<ask_help()> Answers a question based on the argument given.  
 If no arg is given, returns a list of all available help topics.
@@ -128,7 +128,7 @@ Use like so:
 
  my $topic = $help->ask_help('topic');
 
-=item 2
+=item pub_help()
 
 B<pub_help()> Returns a list of public command help topics.
 
@@ -138,13 +138,17 @@ Use like so:
 
 =back
 
+=head1 CREDITS
+
+See IRC::Bot
+
 =head1 AUTHOR
 
 Benjamin Smith (DeFyance) defyance@just-another.net
 
 =head1 SEE ALSO
 
-POE::Component::IRC
+IRC::Bot POE::Component::IRC
 
 =cut
 

@@ -10,7 +10,7 @@ require Exporter;
 
 @ISA     = qw(Exporter AutoLoader);
 @EXPORT  = qw();
-$VERSION = '0.01';
+$VERSION = '0.02';
 
 my $cache = new Cache::FileCache(
     {
@@ -122,7 +122,7 @@ Provides session handling for IRC::Bot.
 
 =over 4
 
-=item 1
+=item is_auth()
 
 B<is_auth()> takes one argument, users nick, and checks to see if 
 they are authed.  Returns 0 if authed, 1 if otherwise.
@@ -131,16 +131,16 @@ Use like so:
 
  my $check = $auth->is_auth( $nick );
 
-=item 2
+=item get_ses()
 
 B<get_ses()> takes a nickname as an argument.  Checks to see if user 
 is authed and returns data from session.
 
 Use like so:
 
- $auth->get_ses( $nick );
+ my $nick_ses = $auth->get_ses( $nick );
 
-=item 3
+=item auth_set()
 
 B<auth_set()> Sets users session.  Takes a nick for an argument, sets 
 session time at one hour.
@@ -149,7 +149,7 @@ Use like so:
 
  $auth->auth_set( $nick );
  
-=item 4
+=item de_auth()
 
 B<de_auth()> clears the session, takes a nick for an argument.
 
@@ -159,12 +159,16 @@ Use like so:
  
 =back
 
+=head1 CREDITS
+
+See IRC::Bot
+
 =head1 AUTHOR
 
 Benjamin Smith (DeFyance) defyance@just-another.net
 
 =head1 SEE ALSO
 
-POE::Component::IRC Cache::FileCache
+IRC::Bot POE::Component::IRC Cache::FileCache
 
 =cut

@@ -2,7 +2,7 @@ package IRC::Bot;
 
 use strict;
 use warnings;
-use diagnostics;  # For development
+#use diagnostics;  # For development
 use vars qw($VERSION @ISA @EXPORT $log $seen $auth $help);
 use Carp;
 use POE;
@@ -18,7 +18,7 @@ require Exporter;
 
 @ISA     = qw(Exporter AutoLoader);
 @EXPORT  = qw();
-$VERSION = '0.01';
+$VERSION = '0.02';
 
 # Set us up the bomb
 sub new {
@@ -278,10 +278,6 @@ sub on_public {
                 $self->botspeak( $kernel, $channel,
                     "Sorry, $nick, I haven't seen $name." );
             }
-        }
-        else {
-            $self->botspeak( $kernel, $channel,
-                "Hey $nick, its like this: $help->ask_help('seen');" );
         }
     }
 }
@@ -769,8 +765,7 @@ IRC::Bot - Channel Maintenance IRC bot.
 =head1 DESCRIPTION
 
 A complete bot, similar to eggdrop using POE::Component::IRC.
-Allows access to all channel user management modes.  Provides !seen 
-functions,a complete help system, logging, dcc chat interface, and it runs as a 
+Allows access to all channel user management modes.  Provides !seen functions, a complete help system, logging, dcc chat interface, and it runs as a
 daemon process.  IRC::Bot utilizes Cache::FileCache for seen functions, 
 and for session handling.
 
@@ -778,45 +773,66 @@ and for session handling.
 
 =over 3
 
-=item 1
+=item new()
 
 B<new()> Initializes the object, takes bunches of parameters to make
 things work, see SYNOPSIS for usage.
 
-B<Debug> Tells P::C::I to output the messaging between client/server.
-         Outputs to error.log.
 
-B<Nick> The nick you want your bot to go by.
+=head2 Parameters
 
-B<Server> The server you want to connect the bot to.
+=over
 
-B<Pass> ~Optional~ Sets the password for a password protected server.
+I<Debug> Tells P::C::I to output the messaging between client/server.  Outputs to error.log.
 
-B<Port> Port to connect on server.
 
-B<Username> Username for display in /whois .
+I<Nick> The nick you want your bot to go by.
 
-B<Ircname> Also for /whois display.
 
-B<Admin> Admin name for bot access.
+I<Server> The server you want to connect the bot to.
 
-B<Apass> Password for admin access.
 
-B<Channels> List of channels to join, takes as many as you want to fit.
+I<Pass> ~Optional~ Sets the password for a password protected server.
 
-B<LogPath> ~Optional~ The absolute path of where to open log files.  If 
+
+I<Port> Port to connect on server.
+
+
+I<Username> Username for display in /whois .
+
+
+I<Ircname> Also for /whois display.
+
+
+I<Admin> Admin name for bot access.
+
+
+I<Apass> Password for admin access.
+
+
+I<Channels> List of channels to join, takes as many as you want to fit.
+
+
+I<LogPath> ~Optional~ The absolute path of where to open log files.  If 
 set to 'null', nothing is logged, and error.log will be put in your 
 $ENV{'HOME'} directory.
 
-=item 2
+=back
+
+=item daemon()
 
 B<daemon()> Sets process as a daemon.
 
-=item 3
+=item run()
 
 B<run()> Starts bot up, registers events, and tons of other neat stuff.
 
 =back
+
+=head1 CREDITS
+
+Thanks to Perlmonks.org for education/support/ideas.
+Thanks to Danyeal for being patient with me, and loving me.
 
 =head1 AUTHOR
 

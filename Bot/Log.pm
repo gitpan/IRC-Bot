@@ -20,7 +20,9 @@ sub new {
 
 }
 
-sub list {
+# Set up a list of Bot names
+# For use in other methods
+sub _list {
 
     my $self = shift;
     my $blog = $self->{'Path'} . "bot.log";
@@ -41,7 +43,7 @@ sub list {
 sub _load {
 
     my $self = shift;
-    my %list = $self->list();
+    my %list = $self->_list();
 
     if ( $self->{'Path'} ne 'null' ) {
         foreach ( keys %list ) {
@@ -61,7 +63,7 @@ sub _load {
 sub bot_log {
 
     my ( $self, $message ) = @_;
-    my %list = $self->list();
+    my %list = $self->_list();
 
     if ( $self->{'Path'} ne 'null' ) {
         open( FILE, ">>$list{'Bot'}" ) || croak "Cannot Open $list{'Bot'}!";
@@ -76,7 +78,7 @@ sub bot_log {
 sub serv_log {
 
     my ( $self, $message ) = @_;
-    my %list = $self->list();
+    my %list = $self->_list();
 
     if ( $self->{'Path'} ne 'null' ) {
         open( FILE, ">>$list{'Server'}" ) || croak "Cannot Open $list{'Server'}!";
@@ -91,7 +93,7 @@ sub serv_log {
 sub chan_log {
 
     my ( $self, $message ) = @_;
-    my %list = $self->list();
+    my %list = $self->_list();
 
     if ( $self->{'Path'} ne 'null' ) {
         open( FILE, ">>$list{'Channel'}" ) || croak "Cannot Open $list{'Channel'}!";
@@ -107,7 +109,7 @@ sub chan_log {
 sub clear_log {
 
     my ( $self, $arg ) = @_;
-    my %list = $self->list();
+    my %list = $self->_list();
 
     if ( $arg eq 'All' ) {
         foreach ( keys %list ) {
@@ -133,7 +135,7 @@ __END__
 
 =head1 NAME
 
-Log.pm A module to provide logging methods for IRC::Bot
+Log.pm A module to provide logging methods for IRC::Bot.
 
 =head1 SYNOPSIS
 
@@ -161,7 +163,7 @@ Provides logging functionality for an IRC bot.
 
 =over 4
 
-=item 1
+=item bot_log()
 
 B<bot_log()> logs private messages to the bot
 
@@ -169,12 +171,16 @@ Use like so:
 
  $log->bot_log( "Lamer tried to access me!\n" );
 
-=item 2
+=item serv_log()
 
 B<serv_log()> Logs server events like disconnects, connects, connection 
 errors and such.
 
-=item 3
+Use like so:
+
+ $log->serv_log( "Connected.." );
+ 
+=item chan_log()
 
 B<chan_log()> Logs channel activity, just about everything.
 
@@ -182,7 +188,7 @@ Use like so:
 
  $log->chan_log( "$nick joined $channel\n" );
 
-=item 4
+=item clear_log()
 
 B<clear_log()> clears the specified log file.  Arguments are:
 
@@ -197,12 +203,16 @@ Use like so:
 
 =back
 
+=head1 CREDITS
+
+See IRC::Bot
+
 =head1 AUTHOR
 
 Benjamin Smith (DeFyance) defyance@just-another.net
 
 =head1 SEE ALSO
 
-POE::Component::IRC
+IRC::Bot POE::Component::IRC
 
 =cut

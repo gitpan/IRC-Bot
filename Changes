@@ -3,3 +3,7 @@ Revision history for Perl extension IRC::Bot.
 0.01  Fri May  23 13:40 2003
 	- original version;
 
+0.02  Tue June 3 14:15 2003
+        - Mild Changes;
+Made some changes to the POD to make it a bit more readable, and some 
+minor code changes, nothing that should directly impact the user.

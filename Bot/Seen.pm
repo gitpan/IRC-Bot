@@ -109,7 +109,7 @@ Provides seen functionality for an IRC bot.
 
 =over 4
 
-=item 1
+=item log_seen()
 
 B<log_seen()> takes two arguments, stores info into cache.  Returns 
 nothing.
@@ -118,16 +118,16 @@ Use like so:
 
  $seen->log_seen( $nick, $msg );
 
-=item 2
+=item get_seen()
 
-B<getSeen()> takes a nickname as an argument.  Checks to see if nick is 
+B<get_seen()> takes a nickname as an argument.  Checks to see if nick is 
 defined in the cache and returns the results.
 
 Use like so:
 
  $seen->get_seen( $nick );
 
-=item 3
+=item load_current()
 
 B<load_current()> takes list from irc_353 (names command) as an argument 
 and loads it into the cache, so current users on the channel are seen.
@@ -136,11 +136,15 @@ Use like so:
 
  $seen->load_current( $names );
 
-=item 4
+=item clear_seen()
 
 B<clear_seen()> clears the cache, takes no args.
 
 =back
+
+=head1 CREDITS
+
+See IRC::Bot
 
 =head1 AUTHOR
 
@@ -148,6 +152,6 @@ Benjamin Smith (DeFyance) defyance@just-another.net
 
 =head1 SEE ALSO
 
-POE::Component::IRC Cache::FileCache
+IRC::Bot POE::Component::IRC Cache::FileCache
 
 =cut
