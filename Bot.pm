@@ -18,7 +18,7 @@ require Exporter;
 
 @ISA     = qw(Exporter AutoLoader);
 @EXPORT  = qw();
-$VERSION = '0.02';
+$VERSION = '0.03';
 
 # Set us up the bomb
 sub new {
@@ -79,7 +79,8 @@ sub bot_start {
 
     my ( $self, $kernel, $session ) = @_[ OBJECT, KERNEL, SESSION ];
 
-    $log->serv_log("Starting Up...");
+    my $ts = scalar(localtime);
+    $log->serv_log("[$ts] Starting Up...");
 
     $kernel->post( NICK, 'register', 'all' );
     $kernel->post(
@@ -256,9 +257,10 @@ sub on_public {
         $self->botspeak( $kernel, $channel, "I've been up for $time" );
 
     }
-    elsif ( $msg =~ m/^!seen\s+([^"]*)/i ) {
+    elsif ( $msg =~ m/^!seen/i ) {
 
-        my $name = $1;
+        my @arg  = split ( / /, $msg );
+        my $name = $arg[1];
 
         if ($name) {
 
@@ -278,6 +280,10 @@ sub on_public {
                 $self->botspeak( $kernel, $channel,
                     "Sorry, $nick, I haven't seen $name." );
             }
+        }
+        else {
+            my $seen = $help->pub_help('seen');
+            $self->botspeak( $kernel, $channel, "Hey $nick, it's like this: $seen" );
         }
     }
 }
@@ -771,13 +777,14 @@ and for session handling.
 
 =head1 METHODS/OPTIONS
 
-=over 3
+=over
 
 =item new()
 
 B<new()> Initializes the object, takes bunches of parameters to make
 things work, see SYNOPSIS for usage.
 
+=back
 
 =head2 Parameters
 
@@ -818,6 +825,8 @@ set to 'null', nothing is logged, and error.log will be put in your
 $ENV{'HOME'} directory.
 
 =back
+
+=over
 
 =item daemon()
 

@@ -7,3 +7,11 @@ Revision history for Perl extension IRC::Bot.
         - Mild Changes;
 Made some changes to the POD to make it a bit more readable, and some 
 minor code changes, nothing that should directly impact the user.
+
+0.03 Wed June 4 17:22 2003
+        - POD Fixes Minor Enhancements;
+Fixed some jacked up POD on Bot.pm
+Cloned the ask_help() method in Auth.pm to pub_help() to make pub_help() 
+more usable.  Modified the !seen command to be more friendly.  The command 
+can now use pub_help() to display the help topic if the user doesn't use 
+the proper syntax. 

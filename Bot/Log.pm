@@ -75,6 +75,7 @@ sub bot_log {
     }
 }
 
+# Records server events.
 sub serv_log {
 
     my ( $self, $message ) = @_;
@@ -90,6 +91,7 @@ sub serv_log {
     }
 }
 
+# Records channel events
 sub chan_log {
 
     my ( $self, $message ) = @_;

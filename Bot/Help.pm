@@ -9,7 +9,7 @@ require Exporter;
 
 @ISA     = qw(Exporter AutoLoader);
 @EXPORT  = qw();
-$VERSION = '0.02';
+$VERSION = '0.03';
 
 my %help = (
 
@@ -75,9 +75,19 @@ sub ask_help {
 # Someone asked for help in a chan, return list.
 sub pub_help {
 
-    my $self = shift;
-    return %pub_help;
+    my ( $self, $command ) = @_;
 
+    if ( defined $command ) {
+        if ( exists $pub_help{$command} ) {
+            return $pub_help{$command};
+        }
+        else {
+            return "Sorry! There is no help available for $command";
+        }
+    }
+    else {
+        return %pub_help;
+    }
 }
 
 1;
@@ -130,7 +140,8 @@ Use like so:
 
 =item pub_help()
 
-B<pub_help()> Returns a list of public command help topics.
+B<pub_help()> Pretty much does the same thing as ask_help(), only for
+public commands.
 
 Use like so:
 
