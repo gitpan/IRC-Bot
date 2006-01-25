@@ -45,9 +45,9 @@ my %pub_help = (
     help   => "\cB!help\cB prints this help message.",
     uptime => "\cB!uptime\cB displays current bot uptime.",
     seen   => "\cB!seen <nick>\cB will display the last seen info for <nick>",
-    quoteadd  => "\cB\@quote add <nick> \"<quote>\"\cB will add <quote> for <nick>.  If a quote exists, this will overwrite the current quote.",
-    quotedel => "\cB\@quote del <nick>\cB will remove any quote for <nick>",
-    quote => "\cB\@quote <nick>\cB will return quote for <nick> if one exists",
+    quoteadd  => "\cB\!quote add <nick> \"<quote>\"\cB will add <quote> for <nick>.  If a quote exists, this will overwrite the current quote.",
+    quotedel => "\cB\!quote del <nick>\cB will remove any quote for <nick>",
+    quote => "\cB\!quote <nick>\cB will return quote for <nick> if one exists",
 
 );
 

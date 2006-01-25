@@ -200,9 +200,17 @@ sub on_mode {
 
     my $nick = ( split /!/, $who )[0];
     my $time = sprintf( "%02d:%02d", ( localtime( time() ) )[ 2, 1 ] );
-    $self->{'Nick'} eq $where
-      ? $log->bot_log("[$where $time] MODE: $mode")
-      : $log->chan_log("[$where $time] MODE: $mode $nicks by: $nick");
+    if ($self->{'Nick'} eq $where) {
+        $log->bot_log("[$where $time] MODE: $mode");
+    }
+    else {
+        if ($nicks) {
+            $log->chan_log("[$where $time] MODE: $mode $nicks by: $nick");
+        }
+        else {
+            $log->chan_log("[$where $time] MODE: $mode $where by: $nick");
+	}
+    }
 
 }
 
@@ -717,20 +725,37 @@ sub on_dcc_chat {
 
             my @arg = split ( / /, $msg );
             my $nnick = $arg[1];
-            $kernel->post ( NICK, 'nick', $nnick );
-
+	    if ($nnick) {
+                $kernel->post ( NICK, 'nick', $nnick );
+	    }
+	    else {
+		my $chnick = $help->ask_help('nick');
+		$kernel->post( NICK, 'dcc_chat', $id, $chnick);
+	    }
         }
         elsif ( $msg =~ m/^.identify/i ) {
 
             my @arg = split ( / /, $msg );
             my $idpass = $arg[1];
-            $self->botspeak( $kernel, 'NickServ', "identify $idpass" );
+            if ($idpass) {
+                $self->botspeak( $kernel, 'NickServ', "identify $idpass" );
+            }
+            else {
+		my $iden = $help->ask_help('identify');
+		$kernel->post( NICK, 'dcc_chat', $id, $iden);
+	    }
 
         }
         elsif ( $msg =~ m/^.msg\s([^"]*)/i ) {
 
             my $user = $1;
-            $self->botspeak( $kernel, $user, "" );
+            if ($user) {
+                $self->botspeak( $kernel, $user, "" );
+            }
+	    else {
+		my $priv = $help->ask_help('msg');
+		$kernel->post( NICK, 'dcc_chat', $id, $priv);
+	    }
 
         }
         elsif ( $msg =~ m/^.away/i ) {

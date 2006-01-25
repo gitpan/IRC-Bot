@@ -27,3 +27,10 @@ Added a handler for server notices, and mode changes.
 Added a Nickserv password to be sent on startup.  
 Added the ability to send privmsgs to users, or a channel(.msg in DCC chat).
 Added .nick command to DCC chat to be able to change the bots nick on the fly.
+
+0.06 Wed January 24 18:16 2006
+        - Addition of commands..
+Added a Nickserv password to be sent on startup.
+Added the ability to send privmsgs to users, or a channel(.msg in DCC chat).
+Added .nick command to DCC chat to be able to change the bots nick on the fly.
+Bug fixes as well :)
