@@ -165,7 +165,7 @@ See IRC::Bot
 
 =head1 AUTHOR
 
-Benjamin Smith (DeFyance) defyance@just-another.net
+Benjamin Smith defitro@just-another.net
 
 =head1 SEE ALSO
 

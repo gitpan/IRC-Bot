@@ -4,7 +4,8 @@ use strict;
 use warnings;
 
 #use diagnostics;  # For development
-use vars qw($VERSION @ISA @EXPORT $log $seen $auth $help);
+use vars qw($VERSION @ISA @EXPORT $log $seen $auth $help $quote $whois
+    $qact $qactdel $quser $qtext $qchannel $delcheck);
 use Carp;
 use POE;
 use POE::Component::IRC;
@@ -13,13 +14,14 @@ use IRC::Bot::Log;
 use IRC::Bot::Seen;
 use IRC::Bot::Auth;
 use IRC::Bot::Help;
+use IRC::Bot::Quote;
 use constant NICK => 'bot';
 
 require Exporter;
 
 @ISA     = qw(Exporter AutoLoader);
 @EXPORT  = qw();
-$VERSION = '0.04';
+$VERSION = '0.05';
 
 # Set us up the bomb
 sub new {
@@ -34,11 +36,14 @@ sub new {
 sub run {
 
     my $self = shift;
-
+    if ($self->{'LogPath'} eq '') {
+      $self->{'LogPath'} = $ENV{'HOME'} . "/";
+    }
     $log = IRC::Bot::Log->new( 'Path' => $self->{'LogPath'} );
     $seen = IRC::Bot::Seen->new();
     $auth = IRC::Bot::Auth->new();
     $help = IRC::Bot::Help->new();
+    $quote = IRC::Bot::Quote->new();
 
     POE::Component::IRC->new(NICK)
       || croak "Cannot create new P::C::I object!\n";
@@ -97,7 +102,8 @@ sub bot_start {
             Server   => $self->{'Server'},
             Port     => $self->{'Port'},
             Username => $self->{'User'},
-            Ircname  => $self->{'Ircname'}
+            Ircname  => $self->{'Ircname'},
+	    NSPass   => $self->{'NSPass'}
         }
     );
     $kernel->delay( 'reconnect', 20 );
@@ -109,6 +115,10 @@ sub on_connect {
 
     my ( $self, $kernel ) = @_[ OBJECT, KERNEL ];
     $kernel->post( NICK, 'mode', $self->{'Nick'}, '+B' );
+    if ($self->{'NSPass'}) {
+      my $msg = "identify " . $self->{'NSPass'};
+      $self->botspeak( $kernel, 'NickServ', $msg );
+    }
     foreach my $chan ( @{ $self->{'Channels'} } ) {
         $kernel->post( NICK, 'join', $chan );
     }
@@ -343,6 +353,50 @@ sub on_public {
             my $seen = $help->pub_help('seen');
             $self->botspeak( $kernel, $channel,
                 "Hey $nick, it's like this: $seen" );
+        }
+    }
+    elsif ( $msg =~ m/^!quote/i ) {
+
+        my @arg  = split ( / /, $msg );
+        my $name  = $arg[1];
+        my $there = $arg[2];
+        $qchannel = $channel;
+        if ($name) {
+            if ( $msg =~ m/^!quote\s+(\w+)\s+([^"]*)\s+"([^"]*)"/i ) {
+
+                $qact  = $1;
+                $quser = $2;
+                $qtext = $3;
+		my $res;
+                if ($qact eq "add" ) {
+	          $res = $quote->quote_set( $quser, $qtext );
+		  $self->botspeak( $kernel, $channel, $res );
+                }
+            }
+            elsif ( $msg =~ m/^!quote\s+(\w+)\s+([^"]*)$/i ) {
+                $qactdel = $1;
+                $quser = $2;
+                $delcheck = 1;
+                my $res;
+	        if ($qactdel eq "del") {   
+ 		  $res = $quote->quote_forget( $quser );
+                  $self->botspeak( $kernel, $channel, $res );
+                }
+           }
+           else {
+               my $said;
+               if ($there) {
+                 $said = $quote->quote_query( $there );
+               }
+               else {
+                 $said = $quote->quote_query( $name );
+               }
+               $self->botspeak( $kernel, $channel, $said );
+           }
+        }
+        else {
+            my $rhelp = $help->pub_help('quote');
+            $self->botspeak( $kernel, $channel, $rhelp );
         }
     }
 }
@@ -659,6 +713,26 @@ sub on_dcc_chat {
             }
 
         }
+        elsif ( $msg =~ m/^.nick/i ) {
+
+            my @arg = split ( / /, $msg );
+            my $nnick = $arg[1];
+            $kernel->post ( NICK, 'nick', $nnick );
+
+        }
+        elsif ( $msg =~ m/^.identify/i ) {
+
+            my @arg = split ( / /, $msg );
+            my $idpass = $arg[1];
+            $self->botspeak( $kernel, 'NickServ', "identify $idpass" );
+
+        }
+        elsif ( $msg =~ m/^.msg\s([^"]*)/i ) {
+
+            my $user = $1;
+            $self->botspeak( $kernel, $user, "" );
+
+        }
         elsif ( $msg =~ m/^.away/i ) {
 
             my @arg = split ( / /, $msg );
@@ -763,8 +837,12 @@ sub daemon {
     my @fh = ( \*STDIN, \*STDOUT );
 
     my $path;
-    $self->{'LogPath'} eq 'null' ? $path = $ENV{'HOME'} : $path =
-      $self->{'LogPath'};
+    if (!defined($self->{'LogPath'})) {
+      $path = $ENV{'HOME'};
+    }
+    else {
+       $path = $self->{'LogPath'};
+    }
     open \*STDERR, ">$path/error.log";
     select( ( select( \*STDERR ), $| = 1 )[0] );
 
@@ -820,6 +898,7 @@ IRC::Bot - Channel Maintenance IRC bot.
                            Apass    => 'iamgod',
                            Channels => [ '#mychan', '#test' ],
                            LogPath  => '/home/myhome/bot/log/',
+			   NSPass   => 'nickservpass'
                         );
 
   # Daemonize process 
@@ -833,9 +912,8 @@ IRC::Bot - Channel Maintenance IRC bot.
 =head1 DESCRIPTION
 
 A complete bot, similar to eggdrop using POE::Component::IRC.
-Allows access to all channel user management modes.  Provides !seen functions, a complete help system, logging, dcc chat interface, and it runs as a
-daemon process.  IRC::Bot utilizes Cache::FileCache for seen functions, 
-and for session handling.
+Allows access to all channel user management modes.  Provides !seen and !quote functions, a complete help system, logging, dcc chat interface, and it runs as a
+daemon process.  IRC::Bot utilizes Cache::FileCache for seen and quote functions, and also for session handling.
 
 =head1 METHODS/OPTIONS
 
@@ -886,6 +964,8 @@ I<LogPath> ~Optional~ The absolute path of where to open log files.  If
 set to 'null', nothing is logged, and error.log will be put in your 
 $ENV{'HOME'} directory.
 
+I<NSPass> ~Optional~ Password to send to NickServ for identification on connect.
+
 =back
 
 =over
@@ -903,11 +983,10 @@ B<run()> Starts bot up, registers events, and tons of other neat stuff.
 =head1 CREDITS
 
 Thanks to Perlmonks.org for education/support/ideas.
-Thanks to Danyeal for being patient with me, and loving me.
 
 =head1 AUTHOR
 
-Benjamin Smith (DeFyance) defyance@just-another.net
+Benjamin Smith defitro@just-another.net
 
 =head1 SEE ALSO
 

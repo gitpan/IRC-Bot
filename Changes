@@ -18,4 +18,12 @@ the proper syntax.
 
 0.04 Thurs July 3 13:43 2003
 	- Logging improvements, Bug Fixes;
-Basically captured a few more events to log in Bot.pm. Standardized logging formats for simpler parsing. Corrected a bug with .clear in the /dcc chat commands. Removed plaintext pass from bot.log(Wha!? How'd that happen!).  Added a handler for server notices, and mode changes.
+Basically captured a few more events to log in Bot.pm. Standardized logging formats for simpler parsing. 
+Corrected a bug with .clear in the /dcc chat commands. Removed plaintext pass from bot.log(Wha!? How'd that happen!).  
+Added a handler for server notices, and mode changes.
+
+0.05 Wed January 24 15:15 2006
+	- Addition of commands..
+Added a Nickserv password to be sent on startup.  
+Added the ability to send privmsgs to users, or a channel(.msg in DCC chat).
+Added .nick command to DCC chat to be able to change the bots nick on the fly.

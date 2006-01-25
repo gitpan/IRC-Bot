@@ -29,6 +29,9 @@ my %help = (
     part  => "\cB.part\cB #<chan> Part Specified Channel",
     away  => "\cB.away\cB <msg> Put the bot in away status",
     back  => "\cB.back\cB Leave away status",
+    nick  => "\cB.nick\cB <newnick> Change nick to <newnick>",
+    identify => "\cB.identify\cB <password> Identify yourself with NickServ",
+    msg   => "\cB.msg\cB <nick> <msg> Send a message to <nick>.",
     clear   =>
 "\cB.clear\cB <logname> Clears Log File.  Bot, Server, and Channel are the aliases for logfiles that can be cleared",
     clearseen => "\cB.clearseen\cB Clears seen data from cache",
@@ -42,6 +45,9 @@ my %pub_help = (
     help   => "\cB!help\cB prints this help message.",
     uptime => "\cB!uptime\cB displays current bot uptime.",
     seen   => "\cB!seen <nick>\cB will display the last seen info for <nick>",
+    quoteadd  => "\cB\@quote add <nick> \"<quote>\"\cB will add <quote> for <nick>.  If a quote exists, this will overwrite the current quote.",
+    quotedel => "\cB\@quote del <nick>\cB will remove any quote for <nick>",
+    quote => "\cB\@quote <nick>\cB will return quote for <nick> if one exists",
 
 );
 
@@ -155,7 +161,7 @@ See IRC::Bot
 
 =head1 AUTHOR
 
-Benjamin Smith (DeFyance) defyance@just-another.net
+Benjamin Smith defitro@just-another.net
 
 =head1 SEE ALSO
 

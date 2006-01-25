@@ -3,6 +3,7 @@ Bot/Auth.pm
 Bot/Help.pm
 Bot/Log.pm
 Bot/Seen.pm
+Bot/Quote.pm
 Changes
 MANIFEST
 Makefile.PL

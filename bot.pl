@@ -5,15 +5,16 @@ use IRC::Bot;
 my $bot = IRC::Bot->new(      
                          Debug    => 0,
                          Nick     => 'TestBot',
-     	     	         Server   => 'moo.slashnet.org',
+     	     	         Server   => 'irc.just-another.net',
 			 Pass     => '',
                          Port     => '6667',
                          Username => 'TestBot',
                          Ircname  => 'TestBot',
 			 Admin    => 'admin',
 			 Apass    => 'changeme',
-			 Channels => [ '#DefTest' ],
-			 LogPath  => '/home/mydir/botlog/',
+			 Channels => [ '#perl' ],
+			 LogPath  => '',
+			 NSPass	  => ''
                        );
 $bot->daemon();
 $bot->run();
