@@ -21,7 +21,7 @@ require Exporter;
 
 @ISA     = qw(Exporter AutoLoader);
 @EXPORT  = qw();
-$VERSION = '0.05';
+$VERSION = '0.07';
 
 # Set us up the bomb
 sub new {
@@ -101,7 +101,7 @@ sub bot_start {
             Nick     => $self->{'Nick'},
             Server   => $self->{'Server'},
             Port     => $self->{'Port'},
-            Username => $self->{'User'},
+            Username => $self->{'Username'},
             Ircname  => $self->{'Ircname'},
 	    NSPass   => $self->{'NSPass'}
         }

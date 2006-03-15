@@ -7,4 +7,5 @@ Bot/Quote.pm
 Changes
 MANIFEST
 Makefile.PL
+bot.pl
 test.pl
