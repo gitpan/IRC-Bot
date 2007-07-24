@@ -102,6 +102,7 @@ sub bot_start {
             Server   => $self->{'Server'},
             Port     => $self->{'Port'},
             Username => $self->{'Username'},
+            Password => $self->{'Password'},
             Ircname  => $self->{'Ircname'},
 	    NSPass   => $self->{'NSPass'}
         }
@@ -915,7 +916,7 @@ IRC::Bot - Channel Maintenance IRC bot.
   my $bot = IRC::Bot->new( Debug    => 0,
                            Nick     => 'MyBot',
                            Server   => 'irc.myserver.com',
-                           Pass     => 'myircpassword',
+                           Password => 'myircpassword',
                            Port     => '6667',
                            Username => 'MyBot',
                            Ircname  => 'MyBot',
@@ -964,7 +965,7 @@ I<Nick> The nick you want your bot to go by.
 I<Server> The server you want to connect the bot to.
 
 
-I<Pass> ~Optional~ Sets the password for a password protected server.
+I<Password> ~Optional~ Sets the password for a password protected server.
 
 
 I<Port> Port to connect on server.

@@ -40,3 +40,8 @@ Bug fixes as well :)
 Seemed to be defaulting to the 'foolio' username when connecting. 
 Missed typed the 'Username' field in the connection string for P::C::I.
 It is now corrected.  Thanks to windedhero@gmail.com for finding that!!
+
+0.08 Fri Jun 22 16:30 2007
+        - Password bug fix.
+I seriously think I just deleted the line when fixing the above bug.
+See http://rt.cpan.org/Ticket/Display.html?id=27116

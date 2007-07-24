@@ -5,7 +5,7 @@ use IRC::Bot;
 my $bot = IRC::Bot->new(      
                          Debug    => 0,
                          Nick     => 'PerlBot',
-     	     	         Server   => 'irc.just-another.net',
+     	     	         Server   => 'irc.ecnet.org',
 			 Pass     => '',
                          Port     => '6667',
                          Username => 'TestBot',
@@ -14,7 +14,7 @@ my $bot = IRC::Bot->new(
 			 Apass    => 'changeme',
 			 Channels => [ '#perl' ],
 			 LogPath  => '',
-			 NSPass	  => 'killer18'
+			 NSPass	  => ''
                        );
 $bot->daemon();
 $bot->run();
